@@ -389,7 +389,7 @@ var LineChart = /** @class */ (function(_super) {
                 paddingRight +
                 (i * (width - paddingRight)) / dataset.data.length;
               var y =
-                ((baseHeight - this.calcHeight(d, datas, height)) / 4) * 3 +
+                ((baseHeight - _this.calcHeight(d, datas, height)) / 4) * 3 +
                 paddingTop;
               return x + "," + y;
             })
