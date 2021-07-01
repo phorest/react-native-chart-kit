@@ -255,16 +255,16 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
   };
 
   renderDots = ({
-                  data,
-                  width,
-                  height,
-                  paddingTop,
-                  paddingRight,
-                  onDataPointClick
-                }: Pick<
+    data,
+    width,
+    height,
+    paddingTop,
+    paddingRight,
+    onDataPointClick
+  }: Pick<
     AbstractChartConfig,
     "data" | "width" | "height" | "paddingRight" | "paddingTop"
-    > & {
+  > & {
     onDataPointClick: LineChartProps["onDataPointClick"];
   }) => {
     const output: ReactNode[] = [];
@@ -340,22 +340,22 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
   };
 
   renderScrollableDot = ({
-                           data,
-                           width,
-                           height,
-                           paddingTop,
-                           paddingRight,
-                           scrollableDotHorizontalOffset,
-                           scrollableDotFill,
-                           scrollableDotStrokeColor,
-                           scrollableDotStrokeWidth,
-                           scrollableDotRadius,
-                           scrollableInfoViewStyle,
-                           scrollableInfoTextStyle,
-                           scrollableInfoTextDecorator = x => `${x}`,
-                           scrollableInfoSize,
-                           scrollableInfoOffset
-                         }: AbstractChartConfig & {
+    data,
+    width,
+    height,
+    paddingTop,
+    paddingRight,
+    scrollableDotHorizontalOffset,
+    scrollableDotFill,
+    scrollableDotStrokeColor,
+    scrollableDotStrokeWidth,
+    scrollableDotRadius,
+    scrollableInfoViewStyle,
+    scrollableInfoTextStyle,
+    scrollableInfoTextDecorator = x => `${x}`,
+    scrollableInfoSize,
+    scrollableInfoOffset
+  }: AbstractChartConfig & {
     onDataPointClick: LineChartProps["onDataPointClick"];
     scrollableDotHorizontalOffset: Animated.Value;
   }) => {
@@ -453,13 +453,13 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
               height
             )) /
             4) *
-          3 +
+            3 +
           paddingTop;
         yValues.push(yval);
         const xval =
           paddingRight +
           ((dataset.data.length - index - 1) * (width - paddingRight)) /
-          dataset.data.length;
+            dataset.data.length;
         xValues.push(xval);
 
         yValuesLabel.push(
@@ -535,16 +535,16 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
   };
 
   renderShadow = ({
-                    width,
-                    height,
-                    paddingRight,
-                    paddingTop,
-                    data,
-                    useColorFromDataset
-                  }: Pick<
+    width,
+    height,
+    paddingRight,
+    paddingTop,
+    data,
+    useColorFromDataset
+  }: Pick<
     AbstractChartConfig,
     "data" | "width" | "height" | "paddingRight" | "paddingTop"
-    > & {
+  > & {
     useColorFromDataset: AbstractChartConfig["useShadowColorFromDataset"];
   }) => {
     if (this.props.bezier) {
@@ -560,32 +560,40 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
 
     const datas = this.getDatas(data);
     const baseHeight = this.calcBaseHeight(datas, height);
-    let lastPoint: string;
 
     return data.map((dataset, index) => {
+      let graphLength = 0;
+      if (dataset.hiddenPoints) {
+        graphLength = dataset.hiddenPoints.length;
+      }
+      let points =
+        dataset.data
+          .map(function(d, i) {
+            if (
+              d === null ||
+              (dataset.hasOwnProperty("hiddenPoints") &&
+                dataset.hiddenPoints.includes(i))
+            )
+              return "";
+            const x =
+              paddingRight + (i * (width - paddingRight)) / dataset.data.length;
+
+            const y =
+              ((baseHeight - this.calcHeight(d, datas, height)) / 4) * 3 +
+              paddingTop;
+
+            return `${x},${y}`;
+          })
+          .join(" ") +
+        ` ${paddingRight +
+          ((width - paddingRight) / dataset.data.length) *
+            (dataset.data.length - 1 - graphLength)},${(height / 4) * 3 +
+          paddingTop} ${paddingRight},${(height / 4) * 3 + paddingTop}`;
+
       return (
         <Polygon
           key={index}
-          points={
-            dataset.data
-              .map((d, i) => {
-                if (d === null || data[index].hasOwnProperty("hiddenPoints") && data[index].hiddenPoints.includes(i)) return lastPoint;
-                const x =
-                  paddingRight +
-                  (i * (width - paddingRight)) / dataset.data.length;
-
-                const y =
-                  ((baseHeight - this.calcHeight(d, datas, height)) / 4) * 3 +
-                  paddingTop;
-
-                return `${x},${y}`;
-              })
-              .join(" ") +
-            ` ${paddingRight +
-            ((width - paddingRight) / dataset.data.length) *
-            (dataset.data.length - 1)},${(height / 4) * 3 +
-            paddingTop} ${paddingRight},${(height / 4) * 3 + paddingTop}`
-          }
+          points={points}
           fill={`url(#fillShadowGradient${
             useColorFromDataset ? `_${index}` : ""
           })`}
@@ -596,16 +604,16 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
   };
 
   renderLine = ({
-                  width,
-                  height,
-                  paddingRight,
-                  paddingTop,
-                  data,
-                  linejoinType
-                }: Pick<
+    width,
+    height,
+    paddingRight,
+    paddingTop,
+    data,
+    linejoinType
+  }: Pick<
     AbstractChartConfig,
     "data" | "width" | "height" | "paddingRight" | "paddingTop" | "linejoinType"
-    >) => {
+  >) => {
     if (this.props.bezier) {
       return this.renderBezierLine({
         data,
@@ -624,7 +632,12 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
 
     data.forEach((dataset, index) => {
       const points = dataset.data.map((d, i) => {
-        if (d === null || data[index].hasOwnProperty("hiddenPoints") && data[index].hiddenPoints.includes(i)) return lastPoint;
+        if (
+          d === null ||
+          (data[index].hasOwnProperty("hiddenPoints") &&
+            data[index].hiddenPoints.includes(i))
+        )
+          return lastPoint;
         const x =
           (i * (width - paddingRight)) / dataset.data.length + paddingRight;
         const y =
@@ -662,7 +675,7 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
     }: Pick<
       AbstractChartConfig,
       "width" | "height" | "paddingRight" | "paddingTop" | "data"
-      >
+    >
   ) => {
     if (dataset.data.length === 0) {
       return "M0,0";
@@ -700,15 +713,15 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
   };
 
   renderBezierLine = ({
-                        data,
-                        width,
-                        height,
-                        paddingRight,
-                        paddingTop
-                      }: Pick<
+    data,
+    width,
+    height,
+    paddingRight,
+    paddingTop
+  }: Pick<
     AbstractChartConfig,
     "data" | "width" | "height" | "paddingRight" | "paddingTop"
-    >) => {
+  >) => {
     return data.map((dataset, index) => {
       const result = this.getBezierLinePoints(dataset, {
         width,
@@ -733,16 +746,16 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
   };
 
   renderBezierShadow = ({
-                          width,
-                          height,
-                          paddingRight,
-                          paddingTop,
-                          data,
-                          useColorFromDataset
-                        }: Pick<
+    width,
+    height,
+    paddingRight,
+    paddingTop,
+    data,
+    useColorFromDataset
+  }: Pick<
     AbstractChartConfig,
     "data" | "width" | "height" | "paddingRight" | "paddingTop"
-    > & {
+  > & {
     useColorFromDataset: AbstractChartConfig["useShadowColorFromDataset"];
   }) =>
     data.map((dataset, index) => {
@@ -755,9 +768,9 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
           data
         }) +
         ` L${paddingRight +
-        ((width - paddingRight) / dataset.data.length) *
-        (dataset.data.length - 1)},${(height / 4) * 3 +
-        paddingTop} L${paddingRight},${(height / 4) * 3 + paddingTop} Z`;
+          ((width - paddingRight) / dataset.data.length) *
+            (dataset.data.length - 1)},${(height / 4) * 3 +
+          paddingTop} L${paddingRight},${(height / 4) * 3 + paddingTop} Z`;
 
       return (
         <Path
@@ -857,7 +870,7 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
             fillOpacity={transparent ? 0 : 1}
           />
           {this.props.data.legend &&
-          this.renderLegend(config.width, legendOffset)}
+            this.renderLegend(config.width, legendOffset)}
           <G x="0" y={legendOffset}>
             {this.renderDefs({
               ...config,
@@ -866,59 +879,59 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
             })}
             <G>
               {withHorizontalLines &&
-              (withInnerLines
-                ? this.renderHorizontalLines({
-                  ...config,
-                  count: count,
-                  paddingTop,
-                  paddingRight
-                })
-                : withOuterLines
+                (withInnerLines
+                  ? this.renderHorizontalLines({
+                      ...config,
+                      count: count,
+                      paddingTop,
+                      paddingRight
+                    })
+                  : withOuterLines
                   ? this.renderHorizontalLine({
-                    ...config,
-                    paddingTop,
-                    paddingRight
-                  })
+                      ...config,
+                      paddingTop,
+                      paddingRight
+                    })
                   : null)}
             </G>
             <G>
               {withHorizontalLabels &&
-              this.renderHorizontalLabels({
-                ...config,
-                count: count,
-                data: datas,
-                paddingTop: paddingTop as number,
-                paddingRight: paddingRight as number,
-                formatYLabel,
-                decimalPlaces: chartConfig.decimalPlaces
-              })}
+                this.renderHorizontalLabels({
+                  ...config,
+                  count: count,
+                  data: datas,
+                  paddingTop: paddingTop as number,
+                  paddingRight: paddingRight as number,
+                  formatYLabel,
+                  decimalPlaces: chartConfig.decimalPlaces
+                })}
             </G>
             <G>
               {withVerticalLines &&
-              (withInnerLines
-                ? this.renderVerticalLines({
-                  ...config,
-                  data: data.datasets[0].data,
-                  paddingTop: paddingTop as number,
-                  paddingRight: paddingRight as number
-                })
-                : withOuterLines
+                (withInnerLines
+                  ? this.renderVerticalLines({
+                      ...config,
+                      data: data.datasets[0].data,
+                      paddingTop: paddingTop as number,
+                      paddingRight: paddingRight as number
+                    })
+                  : withOuterLines
                   ? this.renderVerticalLine({
-                    ...config,
-                    paddingTop: paddingTop as number,
-                    paddingRight: paddingRight as number
-                  })
+                      ...config,
+                      paddingTop: paddingTop as number,
+                      paddingRight: paddingRight as number
+                    })
                   : null)}
             </G>
             <G>
               {withVerticalLabels &&
-              this.renderVerticalLabels({
-                ...config,
-                labels,
-                paddingTop: paddingTop as number,
-                paddingRight: paddingRight as number,
-                formatXLabel
-              })}
+                this.renderVerticalLabels({
+                  ...config,
+                  labels,
+                  paddingTop: paddingTop as number,
+                  paddingRight: paddingRight as number,
+                  formatXLabel
+                })}
             </G>
             <G>
               {this.renderLine({
@@ -931,44 +944,44 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
             </G>
             <G>
               {withShadow &&
-              this.renderShadow({
-                ...config,
-                data: data.datasets,
-                paddingRight: paddingRight as number,
-                paddingTop: paddingTop as number,
-                useColorFromDataset: chartConfig.useShadowColorFromDataset
-              })}
+                this.renderShadow({
+                  ...config,
+                  data: data.datasets,
+                  paddingRight: paddingRight as number,
+                  paddingTop: paddingTop as number,
+                  useColorFromDataset: chartConfig.useShadowColorFromDataset
+                })}
             </G>
             <G>
               {withDots &&
-              this.renderDots({
-                ...config,
-                data: data.datasets,
-                paddingTop: paddingTop as number,
-                paddingRight: paddingRight as number,
-                onDataPointClick
-              })}
+                this.renderDots({
+                  ...config,
+                  data: data.datasets,
+                  paddingTop: paddingTop as number,
+                  paddingRight: paddingRight as number,
+                  onDataPointClick
+                })}
             </G>
             <G>
               {withScrollableDot &&
-              this.renderScrollableDot({
-                ...config,
-                ...chartConfig,
-                data: data.datasets,
-                paddingTop: paddingTop as number,
-                paddingRight: paddingRight as number,
-                onDataPointClick,
-                scrollableDotHorizontalOffset
-              })}
+                this.renderScrollableDot({
+                  ...config,
+                  ...chartConfig,
+                  data: data.datasets,
+                  paddingTop: paddingTop as number,
+                  paddingRight: paddingRight as number,
+                  onDataPointClick,
+                  scrollableDotHorizontalOffset
+                })}
             </G>
             <G>
               {decorator &&
-              decorator({
-                ...config,
-                data: data.datasets,
-                paddingTop,
-                paddingRight
-              })}
+                decorator({
+                  ...config,
+                  data: data.datasets,
+                  paddingTop,
+                  paddingRight
+                })}
             </G>
           </G>
         </Svg>
